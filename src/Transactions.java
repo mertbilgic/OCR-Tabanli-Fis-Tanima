@@ -1,11 +1,46 @@
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.HashMap;
 import javax.swing.JFileChooser;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 
 public class Transactions {
+        
+    private Connection con =null;
+    
+    public Transactions() {
+        
+        
+        
+        //?useUnicode=true&characterEncoding=utf8" türkçe karater ile ilgili problem yaşamamızı engelliyor
+        //"jdbc:mysql://localhost:3306/calisan";
+        String url="jdbc:mysql://"+Database.host+":"+Database.port+"/"+Database.d_name+"?useUnicode=true&characterEncoding=utf8";
+            
+        try {
+            //driver ımızı özellikle başlatıyoruz bunu yapmazsak bazen sıkıntı çıkabiliyor
+            //Bunu yaptığımızda jdbc driver ını ekstradan çağırmış oluyoruz
+            Class.forName("com.mysql.jdbc.Driver");
+            
+        } catch (ClassNotFoundException ex) {
+            System.out.println("jdbc driver not found");
+        }
+        try {
+            con=DriverManager.getConnection(url,Database.user_name,Database.pass);
+           //System.out.println("Veritabi baglantisi basarili");
+            
+        } catch (SQLException ex) {
+            System.out.println("Database conneciton failed");
+        }
+        
+        
+        
+    }
+    
+    
     
     HashMap<String,String> content = new HashMap<String,String>();
     public static String path;
