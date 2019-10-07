@@ -3,6 +3,7 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.JFileChooser;
 import net.sourceforge.tess4j.Tesseract;
@@ -11,6 +12,12 @@ import net.sourceforge.tess4j.TesseractException;
 public class Transactions {
         
     private Connection con =null;
+    
+    HashMap<String,String> content = new HashMap<String,String>();
+    
+    ArrayList<PlugData> plug = new ArrayList<PlugData>();
+    
+    public static String path;
     
     public Transactions() {
         
@@ -40,11 +47,6 @@ public class Transactions {
         
     }
     
-    
-    
-    HashMap<String,String> content = new HashMap<String,String>();
-    public static String path;
-    
     public String imagePath(){
         JFileChooser f = new JFileChooser();
         int retunValue=f.showSaveDialog(f);
@@ -73,7 +75,6 @@ public class Transactions {
             //e.printStackTrace(); 
             System.out.println("İmage parsing işlemi sırasında hata alındı");
         } 
-        System.out.println("Parsing: \n"+text);
         return text;
     }
     
@@ -87,34 +88,58 @@ public class Transactions {
         
         return newlineIndex;
     }
+    
     public void parseText(String text){
-        int lineIndex=text.indexOf("\n");
-        int LastIndex=text.lastIndexOf("Toplam");
-        int coloneIndex=text.indexOf(":");
-        int startLine=0,temp;
-        int lastcolon=text.lastIndexOf(":");
-        String key,value,controlLine;
-
-        while (text.length()!=lineIndex){ 
-            key = text.substring(startLine,(coloneIndex));
+        //coIndex colone index
+        // lineSIndex start line index
+        // lineMIndex mid line index
+        // lineEIndex end line index
+       
+        int coIndex,lineSIndex,lineMIndex,lineEIndex;
+        int nameIndex;
+        String key,value,product;
+        
+        nameIndex=text.indexOf("\n");
+        key="İsletmeAdı";
+        value=text.substring(0,nameIndex);
+        
+        content.put(key, value);
+        
+        coIndex=text.indexOf(":");
+        lineSIndex=text.lastIndexOf("\n",coIndex);
+        lineEIndex=text.indexOf("\n",coIndex);
+        
+        System.out.println(coIndex+"---"+lineSIndex);
+        
+        while(coIndex!=-1){
+         
+            key=text.substring((lineSIndex+1),(coIndex)).trim() ;
             
-            value = text.substring((coloneIndex+2),lineIndex);
+            value=text.substring((coIndex+1),lineEIndex).trim();
             
+            //System.out.println("Key: "+key+" Value:"+value);
             
             content.put(key, value);
             
-            startLine=lineIndex+1;
-            coloneIndex=text.indexOf(":",lineIndex+1);
-            if(lastcolon==coloneIndex){
-                
-                key = text.substring(LastIndex,(coloneIndex));
+            coIndex=text.indexOf(":",coIndex+1);
+            lineSIndex=text.lastIndexOf("\n",coIndex);
+            lineEIndex=text.indexOf("\n",coIndex);
             
-                value = text.substring((coloneIndex+2),text.length());
-                  
-                return;
-            }
-            lineIndex=lineCursor(lineIndex,text);          
-        }  
+        }
+        content.forEach((k,v) -> System.out.print("key: "+k+" value:"+v));
+        
+        coIndex=text.indexOf("*");
+        lineSIndex=text.lastIndexOf("\n",coIndex);
+        coIndex=text.lastIndexOf("*");
+        lineEIndex=text.indexOf("\n",coIndex);
+        
+        product = text.substring(lineSIndex+1,lineEIndex-1);
+        
+        System.out.println("\np:  "+product);
+        
+        plug.add(new PlugData(content.get("İsletmeAdı"),content.get("Tarih"),content.get("Fiş No"),product,Integer.parseInt(content.get("Toplam fiyat"))));
+              
+                                 
     }
 }
 
