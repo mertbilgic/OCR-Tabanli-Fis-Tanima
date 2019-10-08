@@ -78,17 +78,6 @@ public class Transactions {
         return text;
     }
     
-    public int lineCursor(int lineIndex,String text){
-        int newlineIndex=text.indexOf("\n",lineIndex+1);
-        
-        while(newlineIndex-lineIndex==1){
-            lineIndex=newlineIndex;
-            newlineIndex=text.indexOf("\n",lineIndex+1);          
-        }
-        
-        return newlineIndex;
-    }
-    
     public void parseText(String text){
         //coIndex colone index
         // lineSIndex start line index
@@ -100,7 +89,7 @@ public class Transactions {
         String key,value,product;
         
         nameIndex=text.indexOf("\n");
-        key="İsletmeAdı";
+        key="İsletme Adı";
         value=text.substring(0,nameIndex);
         
         content.put(key, value);
@@ -116,9 +105,7 @@ public class Transactions {
             key=text.substring((lineSIndex+1),(coIndex)).trim() ;
             
             value=text.substring((coIndex+1),lineEIndex).trim();
-            
-            //System.out.println("Key: "+key+" Value:"+value);
-            
+                       
             content.put(key, value);
             
             coIndex=text.indexOf(":",coIndex+1);
@@ -126,7 +113,6 @@ public class Transactions {
             lineEIndex=text.indexOf("\n",coIndex);
             
         }
-        content.forEach((k,v) -> System.out.print("key: "+k+" value:"+v));
         
         coIndex=text.indexOf("*");
         lineSIndex=text.lastIndexOf("\n",coIndex);
@@ -135,10 +121,14 @@ public class Transactions {
         
         product = text.substring(lineSIndex+1,lineEIndex-1);
         
-        System.out.println("\np:  "+product);
         
-        plug.add(new PlugData(content.get("İsletmeAdı"),content.get("Tarih"),content.get("Fiş No"),product,Integer.parseInt(content.get("Toplam fiyat"))));
-              
+        plug.add(new PlugData(content.get("İsletme Adı"),content.get("Tarih"),content.get("Fiş No"),product,Integer.parseInt(content.get("Toplam fiyat"))));
+        
+
+        
+        
+         
+      
                                  
     }
 }
