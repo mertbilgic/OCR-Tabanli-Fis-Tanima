@@ -282,11 +282,10 @@ public class Menu extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
     
     private void labelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_labelMouseClicked
-        path=t.imagePath();
-        imagePath.setText(path);
-        String text = t.imageRead(path);
+      
+        
+        String text=t.allTras();
         parseText.setText(text);
-        t.parseText(text);
         
         
     }//GEN-LAST:event_labelMouseClicked
