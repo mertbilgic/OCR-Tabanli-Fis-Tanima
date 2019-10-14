@@ -2,11 +2,11 @@ public class PlugData {
     
     private String marketName;
     private String date;
-    private String plugNo;
+    private int plugNo;
     private String product;
     private int totalPrice;
 
-    public PlugData(String marketName, String date, String plugNo, String product, int totalPrice) {
+    public PlugData(String marketName, String date, int plugNo, String product, int totalPrice) {
         this.marketName = marketName;
         this.date = date;
         this.plugNo = plugNo;
@@ -30,11 +30,11 @@ public class PlugData {
         this.date = date;
     }
 
-    public String getPlugNo() {
+    public int getPlugNo() {
         return plugNo;
     }
 
-    public void setPlugNo(String plugNo) {
+    public void setPlugNo(int plugNo) {
         this.plugNo = plugNo;
     }
 

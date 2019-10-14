@@ -3,12 +3,14 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.imageio.stream.FileImageInputStream;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.table.DefaultTableModel;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -21,15 +23,18 @@ import javax.swing.JLabel;
  * @author Mert Bilgic
  */
 public class Menu extends javax.swing.JFrame {
-    
+    DefaultTableModel model;
     Transactions t = new Transactions();
     public String path;
+   
     
     /**
      * Creates new form Menu
      */
     public Menu() {
         initComponents();
+        model = (DefaultTableModel) table.getModel();
+        setTable(t.getAllDB());
         
         Image img;
         try {
@@ -43,6 +48,25 @@ public class Menu extends javax.swing.JFrame {
 
         
     }
+    
+    public void setTable(ArrayList<PlugData> result){
+        
+        model.setRowCount(0);
+        
+        
+        if(result !=null){
+            
+            for (PlugData data : result) {
+                
+                 Object[] add = {data.getMarketName(),data.getDate(),data.getPlugNo(),data.getProduct(),data.getTotalPrice()};
+                 model.addRow(add);
+              
+            }
+            
+        }
+    }
+        
+ 
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -65,11 +89,11 @@ public class Menu extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
-        search = new javax.swing.JTextField();
+        name = new javax.swing.JTextField();
         searchBtn = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        Table = new javax.swing.JTable();
+        table = new javax.swing.JTable();
         jSeparator1 = new javax.swing.JSeparator();
         jSeparator2 = new javax.swing.JSeparator();
         jSeparator5 = new javax.swing.JSeparator();
@@ -79,6 +103,7 @@ public class Menu extends javax.swing.JFrame {
         downBtn = new javax.swing.JButton();
         jLabel9 = new javax.swing.JLabel();
         date = new javax.swing.JTextField();
+        oriBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -104,18 +129,21 @@ public class Menu extends javax.swing.JFrame {
 
         jLabel6.setText("Name:");
 
-        search.setFocusable(false);
-
         searchBtn.setText("Search");
+        searchBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchBtnActionPerformed(evt);
+            }
+        });
 
         jLabel7.setText(" Informations:");
 
-        Table.setModel(new javax.swing.table.DefaultTableModel(
+        table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
             new String [] {
-                "Market Name", "Plug No", "Date", "Product", "Total Price"
+                "Market Name", "Date", "Plug No", "Product", "Total Price"
             }
         ) {
             boolean[] canEdit = new boolean [] {
@@ -126,13 +154,13 @@ public class Menu extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane2.setViewportView(Table);
-        if (Table.getColumnModel().getColumnCount() > 0) {
-            Table.getColumnModel().getColumn(0).setResizable(false);
-            Table.getColumnModel().getColumn(1).setResizable(false);
-            Table.getColumnModel().getColumn(2).setResizable(false);
-            Table.getColumnModel().getColumn(3).setResizable(false);
-            Table.getColumnModel().getColumn(4).setResizable(false);
+        jScrollPane2.setViewportView(table);
+        if (table.getColumnModel().getColumnCount() > 0) {
+            table.getColumnModel().getColumn(0).setResizable(false);
+            table.getColumnModel().getColumn(1).setResizable(false);
+            table.getColumnModel().getColumn(2).setResizable(false);
+            table.getColumnModel().getColumn(3).setResizable(false);
+            table.getColumnModel().getColumn(4).setResizable(false);
         }
 
         jSeparator2.setOrientation(javax.swing.SwingConstants.VERTICAL);
@@ -142,12 +170,27 @@ public class Menu extends javax.swing.JFrame {
         jLabel8.setText("Sorting:");
 
         upBtn.setText("Up");
+        upBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                upBtnActionPerformed(evt);
+            }
+        });
 
         downBtn.setText("Down");
+        downBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                downBtnActionPerformed(evt);
+            }
+        });
 
         jLabel9.setText("Date:");
 
-        date.setFocusable(false);
+        oriBtn.setText("Original");
+        oriBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                oriBtnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -189,6 +232,8 @@ public class Menu extends javax.swing.JFrame {
                                             .addGroup(layout.createSequentialGroup()
                                                 .addGap(10, 10, 10)
                                                 .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(36, 36, 36)
+                                                .addComponent(oriBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addGap(0, 0, Short.MAX_VALUE))))
                                     .addGroup(layout.createSequentialGroup()
                                         .addGap(27, 27, 27)
@@ -201,11 +246,9 @@ public class Menu extends javax.swing.JFrame {
                                             .addGroup(layout.createSequentialGroup()
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                     .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                    .addGroup(layout.createSequentialGroup()
-                                                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                        .addGap(28, 28, 28)))
+                                                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                    .addComponent(search, javax.swing.GroupLayout.DEFAULT_SIZE, 184, Short.MAX_VALUE)
+                                                    .addComponent(name, javax.swing.GroupLayout.DEFAULT_SIZE, 184, Short.MAX_VALUE)
                                                     .addComponent(date))))
                                         .addGap(0, 0, Short.MAX_VALUE)))
                                 .addContainerGap())
@@ -216,7 +259,7 @@ public class Menu extends javax.swing.JFrame {
                                 .addComponent(downBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(71, 71, 71)
                                 .addComponent(searchBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(58, 58, 58))))))
         );
@@ -246,7 +289,7 @@ public class Menu extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(search, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(name, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel9)
@@ -256,8 +299,10 @@ public class Menu extends javax.swing.JFrame {
                         .addGap(15, 15, 15)
                         .addComponent(jSeparator6, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel8)
-                        .addGap(14, 14, 14)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel8)
+                            .addComponent(oriBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(12, 12, 12)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(upBtn)
                             .addComponent(downBtn))))
@@ -286,9 +331,27 @@ public class Menu extends javax.swing.JFrame {
         
         String text=t.allTras();
         parseText.setText(text);
-        
+        setTable(t.getAllDB());
         
     }//GEN-LAST:event_labelMouseClicked
+
+    private void oriBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_oriBtnActionPerformed
+       setTable(t.getAllDB());
+    }//GEN-LAST:event_oriBtnActionPerformed
+
+    private void upBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upBtnActionPerformed
+       setTable(t.sorting("DESC"));
+    }//GEN-LAST:event_upBtnActionPerformed
+
+    private void searchBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBtnActionPerformed
+        String name = this.name.getText().toString();
+        String date = this.date.getText().toString();
+        setTable(t.search(name, date));
+    }//GEN-LAST:event_searchBtnActionPerformed
+
+    private void downBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downBtnActionPerformed
+        setTable(t.sorting("ASC"));
+    }//GEN-LAST:event_downBtnActionPerformed
    
     /**
      * @param args the command line arguments
@@ -326,7 +389,6 @@ public class Menu extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTable Table;
     private javax.swing.JTextField date;
     private javax.swing.JButton downBtn;
     private javax.swing.JLabel imagePath;
@@ -348,9 +410,11 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JSeparator jSeparator5;
     private javax.swing.JSeparator jSeparator6;
     private javax.swing.JLabel label;
+    private javax.swing.JTextField name;
+    private javax.swing.JButton oriBtn;
     private javax.swing.JTextArea parseText;
-    private javax.swing.JTextField search;
     private javax.swing.JButton searchBtn;
+    private javax.swing.JTable table;
     private javax.swing.JButton upBtn;
     // End of variables declaration//GEN-END:variables
 }

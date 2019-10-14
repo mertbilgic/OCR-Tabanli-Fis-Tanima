@@ -71,6 +71,8 @@
                                           <Group type="102" attributes="0">
                                               <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
                                               <Component id="jLabel8" min="-2" pref="44" max="-2" attributes="0"/>
+                                              <EmptySpace min="-2" pref="36" max="-2" attributes="0"/>
+                                              <Component id="oriBtn" min="-2" pref="89" max="-2" attributes="0"/>
                                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                                           </Group>
                                       </Group>
@@ -90,7 +92,7 @@
                                                   <Component id="jLabel9" alignment="0" min="-2" pref="31" max="-2" attributes="0"/>
                                               </Group>
                                               <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                                  <Component id="search" pref="184" max="32767" attributes="0"/>
+                                                  <Component id="name" pref="184" max="32767" attributes="0"/>
                                                   <Component id="date" max="32767" attributes="0"/>
                                               </Group>
                                           </Group>
@@ -108,7 +110,7 @@
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="1" attributes="0">
-                              <EmptySpace max="32767" attributes="0"/>
+                              <EmptySpace min="-2" pref="71" max="-2" attributes="0"/>
                               <Component id="searchBtn" min="-2" pref="167" max="-2" attributes="0"/>
                               <EmptySpace min="-2" pref="58" max="-2" attributes="0"/>
                           </Group>
@@ -151,7 +153,7 @@
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="jLabel6" alignment="0" min="-2" pref="19" max="-2" attributes="0"/>
-                          <Component id="search" max="-2" attributes="0"/>
+                          <Component id="name" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
@@ -163,8 +165,11 @@
                       <EmptySpace min="-2" pref="15" max="-2" attributes="0"/>
                       <Component id="jSeparator6" min="-2" pref="10" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jLabel8" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="14" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="jLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="oriBtn" alignment="3" min="-2" pref="25" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="upBtn" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="downBtn" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -247,15 +252,15 @@
         <Property name="text" type="java.lang.String" value="Name:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JTextField" name="search">
-      <Properties>
-        <Property name="focusable" type="boolean" value="false"/>
-      </Properties>
+    <Component class="javax.swing.JTextField" name="name">
     </Component>
     <Component class="javax.swing.JButton" name="searchBtn">
       <Properties>
         <Property name="text" type="java.lang.String" value="Search"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="searchBtnActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel7">
       <Properties>
@@ -269,13 +274,13 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="javax.swing.JTable" name="Table">
+        <Component class="javax.swing.JTable" name="table">
           <Properties>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
               <Table columnCount="5" rowCount="0">
                 <Column editable="false" title="Market Name" type="java.lang.Object"/>
-                <Column editable="false" title="Plug No" type="java.lang.Object"/>
                 <Column editable="false" title="Date" type="java.lang.Object"/>
+                <Column editable="false" title="Plug No" type="java.lang.Object"/>
                 <Column editable="false" title="Product" type="java.lang.Object"/>
                 <Column editable="false" title="Total Price" type="java.lang.Object"/>
               </Table>
@@ -339,11 +344,17 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Up"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="upBtnActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="downBtn">
       <Properties>
         <Property name="text" type="java.lang.String" value="Down"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="downBtnActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel9">
       <Properties>
@@ -351,9 +362,14 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="date">
+    </Component>
+    <Component class="javax.swing.JButton" name="oriBtn">
       <Properties>
-        <Property name="focusable" type="boolean" value="false"/>
+        <Property name="text" type="java.lang.String" value="Original"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="oriBtnActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

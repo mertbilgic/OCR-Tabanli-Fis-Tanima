@@ -6,9 +6,15 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import net.sourceforge.tess4j.Tesseract;
@@ -22,9 +28,17 @@ public class Transactions {
         
     private Connection con =null;
     
+    private Statement statement =null;
+     
+    private PreparedStatement preparedstatement=null;
+    
+    private Statement statement2=null;
+    
     HashMap<String,String> content = new HashMap<String,String>();
     
     ArrayList<PlugData> plug = new ArrayList<PlugData>();
+    
+    Scanner scanner = new Scanner(System.in);
     
     private static String path;
     
@@ -43,10 +57,7 @@ public class Transactions {
     public static void setPath(String path) {
         Transactions.path = path;
     }
-    
-    
-    
-    
+     
     public Transactions() {
         
         
@@ -86,11 +97,19 @@ public class Transactions {
         
         result=imageRead(path);
         
+        
+        
+        System.out.println("İşletmenin Adın giriniz:");
+        String name =scanner.nextLine();
+        
+        addplug(name);
+        
+        
         return result;
         
         
     }
-    
+    //Kullanıcının okuycağı fişi seçmesini sağlıyor
     public String imagePath(){
         String path;
         JFileChooser f = new JFileChooser();
@@ -101,7 +120,7 @@ public class Transactions {
         }
         return "User clicked CANCEL"; 
     }
-    
+    //OpenCV kullnarak resmin gri versiyonunu çıkartıyor
     public void grayScale(String path){
          try {
          System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
@@ -129,7 +148,7 @@ public class Transactions {
          System.out.println("Error: " + e.getMessage());
       }
     }
-    
+    //Resmin Dpi ayarını yapıyor
     public void setDpi(){
         BufferedImage image=null;
      try {
@@ -152,7 +171,7 @@ public class Transactions {
 
       } catch (Exception e) {}
    }
-    
+    //Tessract kullarak işlenmiş resmi text haline getiriyor
     public String imageRead(String path){
         Tesseract tesseract = new Tesseract();
         String text="";
@@ -173,7 +192,7 @@ public class Transactions {
         }
         return text;
     }
-    
+    //Fişi database eklenecek hale getiriyor
     public void parseText(String text){
         //coIndex colone index
         // lineSIndex start line index
@@ -227,5 +246,178 @@ public class Transactions {
       
                                  
     }
+    //Şirket kontolü yapıcak yoksa eklenicek
+    public void isThereCompany(String name){
+        
+        String query="SELECT *FROM company WHERE name='"+name+"'";
+        
+        try {
+           statement=con.createStatement();
+           
+           ResultSet rs=statement.executeQuery(query);
+           
+            if(!rs.next()){
+               
+                addCompany(name);
+            } 
+            
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
+           
+        }
+        
+       
+    }
+    //Kontrol yapıldığında şirket bulunmuyorsa eklenicek
+    public void addCompany(String name){
+        
+        String query="INSERT INTO company (Name) VALUES (?)";
+        
+        try {
+            preparedstatement=con.prepareStatement(query);
+            
+            preparedstatement.setString(1,name);
+            
+            preparedstatement.executeUpdate();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+    }
+    //İşlemler tamamlandığında arraylist alıcak
+    //Eklenecek veriler arraylistten gelecek
+    public void addplug(String name){
+        int id=0;
+        isThereCompany(name);
+        
+        String query="SELECT *FROM company WHERE name='"+name+"'";
+        
+        try {
+            statement=con.createStatement();
+            
+            
+            ResultSet rs=statement.executeQuery(query);
+        
+            while(rs.next()){
+                
+                id=rs.getInt("ID");
+                
+            }
+            
+            System.out.println("Tarih");
+            
+            String date = scanner.nextLine();
+            
+            System.out.println("Fiş No");
+            
+            int no= scanner.nextInt();
+            scanner.nextLine();
+            System.out.println("Ürün");
+            
+            String pt = scanner.nextLine();
+            
+            System.out.println("Total");
+            
+            int total= scanner.nextInt();
+            
+            
+            query="INSERT INTO plug (ID,date,plugNo,product,total) VALUES (?,?,?,?,?)";
+            
+            preparedstatement=con.prepareStatement(query);
+            
+            preparedstatement.setInt(1, id);
+            
+            preparedstatement.setString(2,date);
+            
+            preparedstatement.setInt(3,no);
+            
+            preparedstatement.setString(4,pt);
+            
+            preparedstatement.setInt(5, total);
+            
+            
+            preparedstatement.executeUpdate();
+            
+            
+            
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
+        }
+           
+       
+        
+    }
+        
+    public ArrayList<PlugData> sorting(String var){
+  
+        String query="SELECT * FROM plug p,company c Where p.ID=c.ID ORDER BY total "+var;
+        
+        ArrayList<PlugData> result = list(query);
+        
+        return result;
+    }
+    
+    public ArrayList<PlugData> search(String nm ,String dt){
+        String query="";
+           
+        if(nm.isEmpty()&&dt.isEmpty()){
+            query="SELECT *FROM company c,plug p Where p.ID=c.ID AND date='"+dt+"'"+"AND name='"+nm+"'";
+        }
+        else if(!nm.isEmpty()&&dt.isEmpty()){
+            query="SELECT *FROM company c,plug p Where p.ID=c.ID AND name='"+nm+"'";
+            
+        }
+        else{
+            query="SELECT *FROM company c,plug p Where p.ID=c.ID AND date='"+dt+"'";
+        }
+        
+        ArrayList<PlugData> result = list(query);
+              
+        return result;
+    }
+    
+    //Veritabanından verileri çekikten sonra menude tabloya basıcaz
+    public ArrayList<PlugData> getAllDB(){
+         
+        String query="SELECT *FROM company c,plug p Where p.ID=c.ID";
+        
+        ArrayList<PlugData> result  = list(query);
+     
+        return result;
+    }
+    
+    public ArrayList<PlugData> list(String query){
+        
+         ArrayList<PlugData> result = new ArrayList<PlugData>();
+         
+        try {
+            statement=con.createStatement();
+            
+            ResultSet rs = statement.executeQuery(query);
+            
+            while(rs.next()){
+                
+               
+                String name = rs.getString("Name");
+                String date= rs.getString("date");
+                int pNo=rs.getInt("plugNo");
+                String product = rs.getString("product");
+                int total = rs.getInt("total");
+                            
+                result.add(new PlugData(name, date, pNo, product, total));
+                
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
+        }
+                 
+        
+        return result;
+    }
+
 }
 
