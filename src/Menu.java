@@ -330,6 +330,7 @@ public class Menu extends javax.swing.JFrame {
       
         
         String text=t.allTras();
+        t.parseText(text);
         parseText.setText(text);
         setTable(t.getAllDB());
         

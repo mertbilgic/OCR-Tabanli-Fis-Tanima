@@ -1,8 +1,8 @@
-
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,10 +12,20 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.metadata.IIOInvalidTreeException;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.metadata.IIOMetadataNode;
+import javax.imageio.stream.ImageOutputStream;
+import static javax.print.attribute.ResolutionSyntax.DPI;
 import javax.swing.JFileChooser;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
@@ -44,11 +54,13 @@ public class Transactions {
     
     private String result;
     
-    private int width=300;
+    double INCH_2_CM=2.54;
     
-    private int height=300;
+    public static final String DENSITY_UNITS_NO_UNITS = "00";
+    public static final String DENSITY_UNITS_PIXELS_PER_INCH = "01";
+    public static final String DENSITY_UNITS_PIXELS_PER_CM = "02";
     
-    
+    static BufferedImage  gridImage=null;
 
     public static String getPath() {
         return path;
@@ -59,9 +71,7 @@ public class Transactions {
     }
      
     public Transactions() {
-        
-        
-        
+ 
         //?useUnicode=true&characterEncoding=utf8" türkçe karater ile ilgili problem yaşamamızı engelliyor
         //"jdbc:mysql://localhost:3306/calisan";
         String url="jdbc:mysql://"+Database.host+":"+Database.port+"/"+Database.d_name+"?useUnicode=true&characterEncoding=utf8";
@@ -81,32 +91,38 @@ public class Transactions {
         } catch (SQLException ex) {
             System.out.println("Database conneciton failed");
         }
-        
-        
-        
-    }
-    
+    }  
     public String allTras(){
         
         path = imagePath();
         
+        //System.out.println(path);
+             
+       File input = new File(path);
+        
+        /*try {
+            gridImage = ImageIO.read(new File(path));
+       } 
+       catch (IOException e) {
+       }
+       
+       try {
+            saveGridImage(input);
+        } catch (IOException ex) {
+            System.out.println("dpi porblem");
+            //Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
+        }*/
+       
         grayScale(path);
         System.out.println(path);
+        result=imageRead(path);  
         
-        setDpi();
-        
-        result=imageRead(path);
-        
-        
-        
-        System.out.println("İşletmenin Adın giriniz:");
-        String name =scanner.nextLine();
+        //System.out.println("İşletmenin Adın giriniz:");
+        String name ="bim";
         
         addplug(name);
-        
-        
+              
         return result;
-        
         
     }
     //Kullanıcının okuycağı fişi seçmesini sağlıyor
@@ -147,37 +163,65 @@ public class Transactions {
       } catch (Exception e) {
          System.out.println("Error: " + e.getMessage());
       }
-    }
-    //Resmin Dpi ayarını yapıyor
-    public void setDpi(){
-        BufferedImage image=null;
-     try {
-         File input = new File(path);
-         image = ImageIO.read(input);
-         width = image.getWidth();
-         height = image.getHeight();
-         
-         int count = 0;
-         
-         for(int i=0; i<height; i++) {
-         
-            for(int j=0; j<width; j++) {
-            
-               count++;
-               Color c = new Color(image.getRGB(j, i));
-               //System.out.println("S.No: " + count + " Red: " + c.getRed() +"  Green: " + c.getGreen() + " Blue: " + c.getBlue());
-            }
-         }
+    }   
+    //Dpı ayarlanmış resmi kayıt ediyor
+    private void saveGridImage(File output) throws IOException {
+    output.delete();
 
-      } catch (Exception e) {}
-   }
+    final String formatName = "jpeg";
+
+    for (Iterator<ImageWriter> iw = ImageIO.getImageWritersByFormatName(formatName); iw.hasNext();) {
+        ImageWriter writer = iw.next();
+        ImageWriteParam writeParam = writer.getDefaultWriteParam();
+        ImageTypeSpecifier typeSpecifier = ImageTypeSpecifier.createFromBufferedImageType(BufferedImage.TYPE_INT_RGB);
+        IIOMetadata metadata = writer.getDefaultImageMetadata(typeSpecifier, writeParam);
+        if (metadata.isReadOnly() || !metadata.isStandardMetadataFormatSupported()) {
+            continue;
+        }
+
+        setDPI(metadata);
+
+        final ImageOutputStream stream = ImageIO.createImageOutputStream(output);
+        try {
+            writer.setOutput(stream);
+            writer.write(metadata, new IIOImage(gridImage, null, metadata), writeParam);
+        } finally {
+            stream.close();
+        }
+        break;
+    }
+
+ }
+   //Dpı ayarlanıyor
+    private void setDPI(IIOMetadata metadata) throws IIOInvalidTreeException {
+
+  String metadataFormat = "javax_imageio_jpeg_image_1.0";
+    IIOMetadataNode root = new IIOMetadataNode(metadataFormat);
+    IIOMetadataNode jpegVariety = new IIOMetadataNode("JPEGvariety");
+    IIOMetadataNode markerSequence = new IIOMetadataNode("markerSequence");
+
+    IIOMetadataNode app0JFIF = new IIOMetadataNode("app0JFIF");
+    app0JFIF.setAttribute("majorVersion", "1");
+    app0JFIF.setAttribute("minorVersion", "2");
+    app0JFIF.setAttribute("thumbWidth", "0");
+    app0JFIF.setAttribute("thumbHeight", "0");
+    app0JFIF.setAttribute("resUnits", DENSITY_UNITS_PIXELS_PER_INCH);
+    app0JFIF.setAttribute("Xdensity", String.valueOf(300));
+    app0JFIF.setAttribute("Ydensity", String.valueOf(300));
+
+    root.appendChild(jpegVariety);
+    root.appendChild(markerSequence);
+    jpegVariety.appendChild(app0JFIF);
+
+    metadata.mergeTree(metadataFormat, root);
+ } 
     //Tessract kullarak işlenmiş resmi text haline getiriyor
     public String imageRead(String path){
         Tesseract tesseract = new Tesseract();
         String text="";
         try { 
             
-            tesseract.setDatapath("C:/Tess4J/tessdata");
+            tesseract.setDatapath("C:\\Tesseract-OCR\\tessdata");
             tesseract.setLanguage("tur");
   
             // the path of your tess data folder 
@@ -194,6 +238,7 @@ public class Transactions {
     }
     //Fişi database eklenecek hale getiriyor
     public void parseText(String text){
+        
         //coIndex colone index
         // lineSIndex start line index
         // lineMIndex mid line index
@@ -235,17 +280,16 @@ public class Transactions {
         lineEIndex=text.indexOf("\n",coIndex);
         
         product = text.substring(lineSIndex+1,lineEIndex-1);
-        
-        
+        System.out.println(content.get("İsletme Adı"));
+        System.out.println(content.get("Tarih"));
+        System.out.println(content.get("Fiş No"));
+        System.out.println(content.get("Toplam fiyat"));
+        System.out.println(product);
+        System.out.println("Liste\n"+content.get("İsletme Adı")+" "+content.get("Tarih")+" "+content.get("Fiş No"+" "+content.get("Toplam fiyat")+" "+product));    
         //plug.add(new PlugData(content.get("İsletme Adı"),content.get("Tarih"),content.get("Fiş No"),product,Integer.parseInt(content.get("Toplam fiyat"))));
-        
-
-        
-        
-         
-      
                                  
     }
+    
     //Şirket kontolü yapıcak yoksa eklenicek
     public void isThereCompany(String name){
         
@@ -263,10 +307,8 @@ public class Transactions {
             
         } catch (SQLException ex) {
             
-            Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
-           
-        }
-        
+            Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);       
+        }    
        
     }
     //Kontrol yapıldığında şirket bulunmuyorsa eklenicek
@@ -284,8 +326,7 @@ public class Transactions {
         } catch (SQLException ex) {
             Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        
+            
     }
     //İşlemler tamamlandığında arraylist alıcak
     //Eklenecek veriler arraylistten gelecek
@@ -297,8 +338,7 @@ public class Transactions {
         
         try {
             statement=con.createStatement();
-            
-            
+                        
             ResultSet rs=statement.executeQuery(query);
         
             while(rs.next()){
@@ -307,23 +347,22 @@ public class Transactions {
                 
             }
             
-            System.out.println("Tarih");
+           // System.out.println("Tarih");
             
-            String date = scanner.nextLine();
+            String date = "aa";
             
-            System.out.println("Fiş No");
+            //system.out.println("Fiş No");
             
-            int no= scanner.nextInt();
-            scanner.nextLine();
-            System.out.println("Ürün");
+            int no= 22;
+            //scanner.nextLine();
+            //System.out.println("Ürün");
             
-            String pt = scanner.nextLine();
+            String pt = "asd";
             
-            System.out.println("Total");
+            //System.out.println("Total");
             
-            int total= scanner.nextInt();
-            
-            
+            int total= 123;
+                        
             query="INSERT INTO plug (ID,date,plugNo,product,total) VALUES (?,?,?,?,?)";
             
             preparedstatement=con.prepareStatement(query);
@@ -337,21 +376,16 @@ public class Transactions {
             preparedstatement.setString(4,pt);
             
             preparedstatement.setInt(5, total);
-            
-            
+                    
             preparedstatement.executeUpdate();
             
-            
-            
-            
+      
         } catch (SQLException ex) {
             Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
         }
-           
-       
-        
+             
     }
-        
+    //Databasedeki verileri sıralamak için kullandığım fonksiyon
     public ArrayList<PlugData> sorting(String var){
   
         String query="SELECT * FROM plug p,company c Where p.ID=c.ID ORDER BY total "+var;
@@ -360,7 +394,7 @@ public class Transactions {
         
         return result;
     }
-    
+    //Databasede arama yapmak için kulladığım fonsksiyon
     public ArrayList<PlugData> search(String nm ,String dt){
         String query="";
            
@@ -379,7 +413,6 @@ public class Transactions {
               
         return result;
     }
-    
     //Veritabanından verileri çekikten sonra menude tabloya basıcaz
     public ArrayList<PlugData> getAllDB(){
          
@@ -389,7 +422,7 @@ public class Transactions {
      
         return result;
     }
-    
+    //Sorgu sonucu dönemem satırları listeye ekleliyor
     public ArrayList<PlugData> list(String query){
         
          ArrayList<PlugData> result = new ArrayList<PlugData>();
@@ -401,23 +434,18 @@ public class Transactions {
             
             while(rs.next()){
                 
-               
                 String name = rs.getString("Name");
                 String date= rs.getString("date");
                 int pNo=rs.getInt("plugNo");
                 String product = rs.getString("product");
                 int total = rs.getInt("total");
                             
-                result.add(new PlugData(name, date, pNo, product, total));
-                
+                result.add(new PlugData(name, date, pNo, product, total));          
             }
         } catch (SQLException ex) {
             Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
-        }
-                 
-        
+        }                    
         return result;
     }
-
 }
 

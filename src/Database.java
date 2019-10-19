@@ -1,6 +1,5 @@
 public class Database {
-    
-    
+      
     public static final String user_name="root";
     
     public static final String pass ="";
