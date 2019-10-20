@@ -32,7 +32,12 @@ import net.sourceforge.tess4j.TesseractException;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
+import static org.opencv.imgcodecs.Imgcodecs.IMREAD_COLOR;
 import org.opencv.imgproc.Imgproc;
+
+
 
 public class Transactions {
         
@@ -98,9 +103,9 @@ public class Transactions {
         
         //System.out.println(path);
              
-       File input = new File(path);
+       /*File input = new File(path);
         
-        /*try {
+        try {
             gridImage = ImageIO.read(new File(path));
        } 
        catch (IOException e) {
@@ -114,15 +119,25 @@ public class Transactions {
         }*/
        
         grayScale(path);
+        gauss(path);
         System.out.println(path);
-        result=imageRead(path);  
-        
+        result=imageRead(path);
+        System.out.println(result);
+        try{
+                    ArrayList<PlugData> plug= parseText(result);
         //System.out.println("İşletmenin Adın giriniz:");
-        String name ="bim";
         
-        addplug(name);
-              
-        return result;
+        
+        addplug(plug);
+        }
+        catch(Exception e) {
+            System.out.println("Fiş okunmadı");
+        }
+        //result = result.toUpperCase();
+        finally{
+            return result;
+        }
+        
         
     }
     //Kullanıcının okuycağı fişi seçmesini sağlıyor
@@ -216,6 +231,28 @@ public class Transactions {
     metadata.mergeTree(metadataFormat, root);
  } 
     //Tessract kullarak işlenmiş resmi text haline getiriyor
+    public void gauss(String path){
+         try{ 
+         // For proper execution of native libraries 
+         // Core.NATIVE_LIBRARY_NAME must be loaded before 
+            // calling any of the opencv methods 
+         System.loadLibrary( Core.NATIVE_LIBRARY_NAME ); 
+  
+         // Input image 
+         Mat source = 
+         Imgcodecs.imread(path, IMREAD_COLOR); 
+         Mat destination = new Mat(source.rows(), source.cols(), source.type()); 
+  
+         // filtering 
+         Imgproc.GaussianBlur(source, destination, new Size(0, 0), 10); 
+         Core.addWeighted(source, 1.5, destination, -0.5, 0, destination); 
+  
+         // writing output image 
+         Imgcodecs.imwrite(path, destination); 
+      }catch (Exception e) { 
+      } 
+    }
+    
     public String imageRead(String path){
         Tesseract tesseract = new Tesseract();
         String text="";
@@ -236,8 +273,25 @@ public class Transactions {
         }
         return text;
     }
+    //Değişkeni aldıktan sonra satır sonu kontrolü yapıyor
+    public boolean cursorLine(String text,int coIndex){
+        
+        int control1=text.indexOf("\n",coIndex+2);
+        int control2=text.indexOf(" ",coIndex+2);
+        
+        if(control1 > control2&&  control1-control2>6){
+            //Satırın devamında bir değişken daha var
+            return true;
+        }
+        else{
+            //Satırda tek değişken var
+            return false;
+        }
+        
+        
+    }
     //Fişi database eklenecek hale getiriyor
-    public void parseText(String text){
+    public ArrayList<PlugData> parseText(String text){
         
         //coIndex colone index
         // lineSIndex start line index
@@ -256,21 +310,33 @@ public class Transactions {
         
         coIndex=text.indexOf(":");
         lineSIndex=text.lastIndexOf("\n",coIndex);
-        lineEIndex=text.indexOf("\n",coIndex);
-        
+        boolean result =cursorLine(text, coIndex+2);
+        if(result)
+            lineEIndex=text.indexOf(" ",coIndex+2);
+        else
+            lineEIndex=text.indexOf("\n",coIndex+2);
         System.out.println(coIndex+"---"+lineSIndex);
         
         while(coIndex!=-1){
-         
+         //System.out.println("key: "+key);
             key=text.substring((lineSIndex+1),(coIndex)).trim() ;
             
             value=text.substring((coIndex+1),lineEIndex).trim();
                        
             content.put(key, value);
-            
-            coIndex=text.indexOf(":",coIndex+1);
-            lineSIndex=text.lastIndexOf("\n",coIndex);
-            lineEIndex=text.indexOf("\n",coIndex);
+            result =cursorLine(text, coIndex+2);
+            if(result){
+                //System.out.println("girdi");
+                lineSIndex=text.indexOf(" ",coIndex+2);
+                coIndex=text.indexOf(":",coIndex+1);
+                lineEIndex=text.indexOf("\n",lineSIndex); 
+            }
+            else{
+                coIndex=text.indexOf(":",coIndex+1);
+                lineSIndex=text.lastIndexOf("\n",coIndex);
+                lineEIndex=text.indexOf("\n",coIndex);                
+            }
+
             
         }
         
@@ -280,16 +346,16 @@ public class Transactions {
         lineEIndex=text.indexOf("\n",coIndex);
         
         product = text.substring(lineSIndex+1,lineEIndex-1);
-        System.out.println(content.get("İsletme Adı"));
+        /*System.out.println(content.get("İsletme Adı"));
         System.out.println(content.get("Tarih"));
         System.out.println(content.get("Fiş No"));
         System.out.println(content.get("Toplam fiyat"));
-        System.out.println(product);
-        System.out.println("Liste\n"+content.get("İsletme Adı")+" "+content.get("Tarih")+" "+content.get("Fiş No"+" "+content.get("Toplam fiyat")+" "+product));    
-        //plug.add(new PlugData(content.get("İsletme Adı"),content.get("Tarih"),content.get("Fiş No"),product,Integer.parseInt(content.get("Toplam fiyat"))));
-                                 
+        System.out.println(product);*/
+        //System.out.println("Liste\n"+content.get("İsletme Adı")+" "+content.get("TARİH")+" "+content.get("FİŞ NO"+" "+content.get("TOPLAM FİYAT")+" "+product));    
+        plug.add(new PlugData(content.get("İsletme Adı"),content.get("Tarih"),Integer.parseInt(content.get("Fiş No")),product,Integer.parseInt(content.get("Toplam fiyat"))));
+        
+        return plug;
     }
-    
     //Şirket kontolü yapıcak yoksa eklenicek
     public void isThereCompany(String name){
         
@@ -330,10 +396,20 @@ public class Transactions {
     }
     //İşlemler tamamlandığında arraylist alıcak
     //Eklenecek veriler arraylistten gelecek
-    public void addplug(String name){
-        int id=0;
-        isThereCompany(name);
+    public void addplug(ArrayList<PlugData> plug){
+        int id=0,no=0,total=0;
+        String date="",pt="",name="";
         
+        //System.out.println(plug.get(0).toString()+"  "+plug.get(1).toString()+plug.get(2).toString()+plug.get(3).toString()+plug.get(4).toString());
+        for (PlugData p: plug){
+               name=p.getMarketName();
+               no=p.getPlugNo();
+               date=p.getDate();
+               pt=p.getProduct();
+               total=p.getTotalPrice();
+                
+            }
+        isThereCompany(name);
         String query="SELECT *FROM company WHERE name='"+name+"'";
         
         try {
@@ -346,23 +422,7 @@ public class Transactions {
                 id=rs.getInt("ID");
                 
             }
-            
-           // System.out.println("Tarih");
-            
-            String date = "aa";
-            
-            //system.out.println("Fiş No");
-            
-            int no= 22;
-            //scanner.nextLine();
-            //System.out.println("Ürün");
-            
-            String pt = "asd";
-            
-            //System.out.println("Total");
-            
-            int total= 123;
-                        
+                                 
             query="INSERT INTO plug (ID,date,plugNo,product,total) VALUES (?,?,?,?,?)";
             
             preparedstatement=con.prepareStatement(query);
