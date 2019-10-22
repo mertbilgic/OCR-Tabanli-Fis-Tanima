@@ -98,7 +98,7 @@ public class Transactions {
         }
     }  
     public String allTras(){
-        
+        plug.removeAll(plug);
         path = imagePath();
         
         //System.out.println(path);
@@ -120,17 +120,22 @@ public class Transactions {
        
         grayScale(path);
         gauss(path);
-        System.out.println(path);
+        //System.out.println(path);
         result=imageRead(path);
-        System.out.println(result);
+        result = result.toUpperCase();
+    
+        //System.out.println(result);
         try{
-                    ArrayList<PlugData> plug= parseText(result);
+            
+         //İlk yaptığım parser işlemleri
+        //ArrayList<PlugData> plug= parseText(result);
         //System.out.println("İşletmenin Adın giriniz:");
-        
-        
-        addplug(plug);
+        //addplug(plug);
+          ArrayList<PlugData> plug =  demoParseText(result);
+          addplug(plug);
         }
         catch(Exception e) {
+            System.out.println(e);
             System.out.println("Fiş okunmadı");
         }
         //result = result.toUpperCase();
@@ -279,7 +284,7 @@ public class Transactions {
         int control1=text.indexOf("\n",coIndex+2);
         int control2=text.indexOf(" ",coIndex+2);
         
-        if(control1 > control2&&  control1-control2>6){
+        if(control1 > control2&&control2!=-1 ){
             //Satırın devamında bir değişken daha var
             return true;
         }
@@ -297,66 +302,159 @@ public class Transactions {
         // lineSIndex start line index
         // lineMIndex mid line index
         // lineEIndex end line index
-       
-        int coIndex,lineSIndex,lineMIndex,lineEIndex;
-        int nameIndex;
-        String key,value,product;
-        
-        nameIndex=text.indexOf("\n");
-        key="İsletme Adı";
-        value=text.substring(0,nameIndex);
-        
-        content.put(key, value);
-        
-        coIndex=text.indexOf(":");
-        lineSIndex=text.lastIndexOf("\n",coIndex);
-        boolean result =cursorLine(text, coIndex+2);
-        if(result)
-            lineEIndex=text.indexOf(" ",coIndex+2);
-        else
-            lineEIndex=text.indexOf("\n",coIndex+2);
-        System.out.println(coIndex+"---"+lineSIndex);
-        
-        while(coIndex!=-1){
-         //System.out.println("key: "+key);
-            key=text.substring((lineSIndex+1),(coIndex)).trim() ;
-            
-            value=text.substring((coIndex+1),lineEIndex).trim();
-                       
+        try{
+            int coIndex,lineSIndex,lineMIndex,lineEIndex;
+            int nameIndex;
+            String key,value,product;
+
+            nameIndex=text.indexOf("\n");
+            key="İsletme Adı";
+            value=text.substring(0,nameIndex);
+
             content.put(key, value);
-            result =cursorLine(text, coIndex+2);
-            if(result){
-                //System.out.println("girdi");
-                lineSIndex=text.indexOf(" ",coIndex+2);
-                coIndex=text.indexOf(":",coIndex+1);
-                lineEIndex=text.indexOf("\n",lineSIndex); 
-            }
-            else{
-                coIndex=text.indexOf(":",coIndex+1);
-                lineSIndex=text.lastIndexOf("\n",coIndex);
-                lineEIndex=text.indexOf("\n",coIndex);                
+
+            coIndex=text.indexOf(":");
+            lineSIndex=text.lastIndexOf("\n",coIndex);
+            boolean result =cursorLine(text, coIndex+2);
+            if(result)
+                lineEIndex=text.indexOf(" ",coIndex+2);
+            else
+                lineEIndex=text.indexOf("\n",coIndex+2);
+            System.out.println(coIndex+"---"+lineSIndex);
+
+            while(coIndex!=-1){
+             //System.out.println("key: "+key);
+                System.out.println("lineSIndex+1 : "+ lineSIndex+1+" coIndex:  "+ coIndex+ "  lineEIndex   "+lineEIndex);
+                key=text.substring((lineSIndex+1),(coIndex)).trim() ;
+
+                value=text.substring((coIndex+1),lineEIndex).trim();
+
+                content.put(key, value);
+                result =cursorLine(text, coIndex+2);
+                if(result){
+                    //System.out.println("girdi");
+                    lineSIndex=text.indexOf(" ",coIndex+2);
+                    coIndex=text.indexOf(":",coIndex+1);
+                    lineEIndex=text.indexOf("\n",lineSIndex); 
+                }
+                else{
+                    coIndex=text.indexOf(":",coIndex+1);
+                    lineSIndex=text.lastIndexOf("\n",coIndex);
+                    lineEIndex=text.indexOf("\n",coIndex);                
+                }
+
+
             }
 
+            coIndex=text.indexOf("%");
+            lineSIndex=text.lastIndexOf("\n",coIndex);
+            coIndex=text.lastIndexOf("%");
+            lineEIndex=text.indexOf("\n",coIndex);
+
+            product = text.substring(lineSIndex+1,lineEIndex-1);
+            System.out.println(content.get("İsletme Adı"));
+            System.out.println(content.get("TARİH"));
+            System.out.println(content.get("FİŞ NO"));
+            System.out.println(content.get("TOPLAM FİYAT"));
+            System.out.println(product);
+            //System.out.println("Liste\n"+content.get("İsletme Adı")+" "+content.get("TARİH")+" "+content.get("FİŞ NO"+" "+content.get("TOPLAM FİYAT")+" "+product));    
+           plug.add(new PlugData(content.get("İsletme Adı"),content.get("TARİH"),content.get("FİŞ NO"),product,content.get("TOPLAM"))); 
+
+            return plug;
             
         }
-        
-        coIndex=text.indexOf("*");
-        lineSIndex=text.lastIndexOf("\n",coIndex);
-        coIndex=text.lastIndexOf("*");
-        lineEIndex=text.indexOf("\n",coIndex);
-        
-        product = text.substring(lineSIndex+1,lineEIndex-1);
-        /*System.out.println(content.get("İsletme Adı"));
-        System.out.println(content.get("Tarih"));
-        System.out.println(content.get("Fiş No"));
-        System.out.println(content.get("Toplam fiyat"));
-        System.out.println(product);*/
-        //System.out.println("Liste\n"+content.get("İsletme Adı")+" "+content.get("TARİH")+" "+content.get("FİŞ NO"+" "+content.get("TOPLAM FİYAT")+" "+product));    
-        plug.add(new PlugData(content.get("İsletme Adı"),content.get("Tarih"),Integer.parseInt(content.get("Fiş No")),product,Integer.parseInt(content.get("Toplam fiyat"))));
-        
+        catch(Exception e){
+            System.out.println("Fiş iyi okunamadığı için parse işlemi gerçekleşemedi");
+        }
         return plug;
     }
     //Şirket kontolü yapıcak yoksa eklenicek
+    public ArrayList<PlugData> demoParseText(String text){
+        String key,value,product;
+        int startLine,colone,endline,counter=0;
+        
+        String[] var={"TARİH","TARIH","FİŞ NO","FIŞ NO","FIS NO","FİS NO"};
+        String[] var2 = new String[2];
+        for(String v: var){
+                //System.out.println("girdi");
+               // System.out.println(v);
+            startLine = text.indexOf(v);
+            if(startLine==-1)
+                continue;
+            var2[counter]=v;
+            //System.out.println(var2[counter]);
+            counter++;
+           // System.out.println(var2[counter]);
+            
+        }
+        
+        
+        
+        //Dinamik bir yapı olmamasının sebebi tesseractın bazen görüntüleri iyi
+        //okumamasından dolayı database işlemleri sırasında problem çıkıyor
+        try{
+            
+            startLine=text.indexOf("\n");
+            System.out.println(startLine);
+            key="İsletme Adı";
+            value=text.substring(0,startLine);
+                        content.put(key, value);
+            System.out.println(content.get("İsletme Adı"));
+
+            for(String v : var2){
+                startLine = text.indexOf(v);
+                colone = text.indexOf(":",startLine);
+                
+                boolean result =cursorLine(text, colone+2);
+                if(result)
+                {   
+                    System.out.println(result);
+                    endline=text.indexOf(" ",colone+2);
+                }
+                
+                else{
+                    System.out.println(result);
+                    endline=text.indexOf("\n",colone+2);   
+                }
+                
+                
+                System.out.println("-------------start: "+startLine+"  colone:"+colone +" endLine: "+endline);
+                key=text.substring((startLine),(colone)).trim() ;
+
+                value=text.substring((colone+1),endline).trim();
+                content.put(key, value);
+                System.out.println("----key: "+key+"--value: "  +value);
+            }
+            startLine = text.indexOf("TOPLAM");
+            colone = text.indexOf(" ",startLine);
+            endline = text.indexOf("\n",startLine);
+            
+            key=text.substring((startLine),(colone)).trim();
+
+            value=text.substring((colone+1),endline).trim();
+            content.put(key, value);
+            System.out.println("----key: "+key+"--value: "  +value);
+            
+            colone=text.indexOf("%");
+            startLine=text.lastIndexOf("\n",colone);
+            colone=text.lastIndexOf("%");
+            endline=text.indexOf("\n",colone);
+
+            product = text.substring(startLine+1,endline);
+            System.out.println(var2[0]);
+            System.out.println(var2[1]);
+            System.out.println("product:  "+ product);
+            plug.add(new PlugData(content.get("İsletme Adı"),content.get(var2[0]),content.get(var2[1]),product,content.get("TOPLAM"))); 
+            
+        }
+        catch(Exception e){
+            System.out.println(e);
+            System.out.println("Parse işlemi sırasında problem çıktı");
+        }
+        
+        return plug;
+    }
+    
     public void isThereCompany(String name){
         
         String query="SELECT *FROM company WHERE name='"+name+"'";
@@ -397,11 +495,14 @@ public class Transactions {
     //İşlemler tamamlandığında arraylist alıcak
     //Eklenecek veriler arraylistten gelecek
     public void addplug(ArrayList<PlugData> plug){
-        int id=0,no=0,total=0;
-        String date="",pt="",name="";
+        if(plug==null)
+            return;
+        int id=0;
+        String date="",pt="",name="",no="",total="";
         
         //System.out.println(plug.get(0).toString()+"  "+plug.get(1).toString()+plug.get(2).toString()+plug.get(3).toString()+plug.get(4).toString());
         for (PlugData p: plug){
+               System.out.println("--------------------------"+p.getDate());
                name=p.getMarketName();
                no=p.getPlugNo();
                date=p.getDate();
@@ -409,6 +510,7 @@ public class Transactions {
                total=p.getTotalPrice();
                 
             }
+          
         isThereCompany(name);
         String query="SELECT *FROM company WHERE name='"+name+"'";
         
@@ -431,15 +533,15 @@ public class Transactions {
             
             preparedstatement.setString(2,date);
             
-            preparedstatement.setInt(3,no);
+            preparedstatement.setString(3,no);
             
             preparedstatement.setString(4,pt);
             
-            preparedstatement.setInt(5, total);
+            preparedstatement.setString(5, total);
                     
             preparedstatement.executeUpdate();
             
-      
+            
         } catch (SQLException ex) {
             Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -496,9 +598,9 @@ public class Transactions {
                 
                 String name = rs.getString("Name");
                 String date= rs.getString("date");
-                int pNo=rs.getInt("plugNo");
+                String pNo=rs.getString("plugNo");
                 String product = rs.getString("product");
-                int total = rs.getInt("total");
+                String total = rs.getString("total");
                             
                 result.add(new PlugData(name, date, pNo, product, total));          
             }

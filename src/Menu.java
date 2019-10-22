@@ -331,13 +331,15 @@ public class Menu extends javax.swing.JFrame {
         try{
              text=t.allTras();
             parseText.setText(text);
+            //t.demoParseText(text);
         setTable(t.getAllDB());
         }
         catch(Exception e){
             
         }
         finally{
-                t.parseText(text);
+            parseText.setText(text);
+                //t.parseText(text);
         }
        
         
