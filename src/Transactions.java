@@ -1,6 +1,8 @@
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+import java.awt.image.RescaleOp;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -59,6 +61,8 @@ public class Transactions {
     
     private String result;
     
+
+    
     double INCH_2_CM=2.54;
     
     public static final String DENSITY_UNITS_NO_UNITS = "00";
@@ -98,6 +102,7 @@ public class Transactions {
         }
     }  
     public String allTras(){
+        boolean status;
         plug.removeAll(plug);
         path = imagePath();
         
@@ -119,32 +124,50 @@ public class Transactions {
         }*/
        
         grayScale(path);
+       
+        //scaling();
+       
         gauss(path);
-        //System.out.println(path);
+        
         result=imageRead(path);
         result = result.toUpperCase();
-    
         //System.out.println(result);
-        try{
+        ArrayList<PlugData> plug = demoParseText(result);
+        status=addplug(plug);
+        System.out.println(status);
+        if(status==false){
+            ArrayList<PlugData> plug2;
+            scaling();
+            result=imageRead(path);
+            result = result.toUpperCase();
+            plug2 = demoParseText(result);
+            addplug(plug2);
+        }
+            
+        
+       /* try{
             
          //İlk yaptığım parser işlemleri
         //ArrayList<PlugData> plug= parseText(result);
         //System.out.println("İşletmenin Adın giriniz:");
         //addplug(plug);
-          ArrayList<PlugData> plug =  demoParseText(result);
+          plug = demoParseText(result);
           addplug(plug);
         }
         catch(Exception e) {
+            
             System.out.println(e);
             System.out.println("Fiş okunmadı");
         }
         //result = result.toUpperCase();
         finally{
             return result;
-        }
+        }*/
         
-        
+        return result;
     }
+    
+   
     //Kullanıcının okuycağı fişi seçmesini sağlıyor
     public String imagePath(){
         String path;
@@ -185,7 +208,7 @@ public class Transactions {
       }
     }   
     //Dpı ayarlanmış resmi kayıt ediyor
-    private void saveGridImage(File output) throws IOException {
+   /* private void saveGridImage(File output) throws IOException {
     output.delete();
 
     final String formatName = "jpeg";
@@ -234,25 +257,20 @@ public class Transactions {
     jpegVariety.appendChild(app0JFIF);
 
     metadata.mergeTree(metadataFormat, root);
- } 
+ }*/ 
     //Tessract kullarak işlenmiş resmi text haline getiriyor
     public void gauss(String path){
          try{ 
-         // For proper execution of native libraries 
-         // Core.NATIVE_LIBRARY_NAME must be loaded before 
-            // calling any of the opencv methods 
+
          System.loadLibrary( Core.NATIVE_LIBRARY_NAME ); 
   
-         // Input image 
          Mat source = 
          Imgcodecs.imread(path, IMREAD_COLOR); 
          Mat destination = new Mat(source.rows(), source.cols(), source.type()); 
   
-         // filtering 
          Imgproc.GaussianBlur(source, destination, new Size(0, 0), 10); 
          Core.addWeighted(source, 1.5, destination, -0.5, 0, destination); 
-  
-         // writing output image 
+
          Imgcodecs.imwrite(path, destination); 
       }catch (Exception e) { 
       } 
@@ -368,12 +386,12 @@ public class Transactions {
         }
         return plug;
     }
-    //Şirket kontolü yapıcak yoksa eklenicek
+
     public ArrayList<PlugData> demoParseText(String text){
         String key,value,product;
         int startLine,colone,endline,counter=0;
         
-        String[] var={"TARİH","TARIH","FİŞ NO","FIŞ NO","FIS NO","FİS NO"};
+        String[] var={"TARİH","TARIH","FİŞ NO","FIŞ NO","FIS NO","FİS NO","FİİŞ NO","FİS ND","FİS N0"};
         String[] var2 = new String[2];
         for(String v: var){
                 //System.out.println("girdi");
@@ -387,20 +405,18 @@ public class Transactions {
            // System.out.println(var2[counter]);
             
         }
-        
-        
-        
         //Dinamik bir yapı olmamasının sebebi tesseractın bazen görüntüleri iyi
         //okumamasından dolayı database işlemleri sırasında problem çıkıyor
         try{
-            
+            ////////////////////////////////////////////////////////////////////////////////////////////
             startLine=text.indexOf("\n");
             System.out.println(startLine);
             key="İsletme Adı";
             value=text.substring(0,startLine);
-                        content.put(key, value);
+            content.put(key, value);
             System.out.println(content.get("İsletme Adı"));
-
+            ////////////////////////////////////////////////////////////////////////////////////////////
+            
             for(String v : var2){
                 startLine = text.indexOf(v);
                 colone = text.indexOf(":",startLine);
@@ -415,46 +431,122 @@ public class Transactions {
                 else{
                     System.out.println(result);
                     endline=text.indexOf("\n",colone+2);   
-                }
-                
-                
-                System.out.println("-------------start: "+startLine+"  colone:"+colone +" endLine: "+endline);
+                }           
                 key=text.substring((startLine),(colone)).trim() ;
-
                 value=text.substring((colone+1),endline).trim();
+                value = controlNumber(value);
                 content.put(key, value);
-                System.out.println("----key: "+key+"--value: "  +value);
             }
+            
+            ////////////////////////////////////////////////////////////////////////////////////////////
+            //Çeşitlendir
             startLine = text.indexOf("TOPLAM");
             colone = text.indexOf(" ",startLine);
             endline = text.indexOf("\n",startLine);
-            
-            key=text.substring((startLine),(colone)).trim();
-
+            key="TOPLAM";
             value=text.substring((colone+1),endline).trim();
+            value = controlNumber(value);
+            System.out.println(key+"------------------------------------"+value);
             content.put(key, value);
-            System.out.println("----key: "+key+"--value: "  +value);
+            
+            ////////////////////////////////////////////////////////////////////////////////////////////
             
             colone=text.indexOf("%");
             startLine=text.lastIndexOf("\n",colone);
             colone=text.lastIndexOf("%");
             endline=text.indexOf("\n",colone);
-
             product = text.substring(startLine+1,endline);
-            System.out.println(var2[0]);
-            System.out.println(var2[1]);
-            System.out.println("product:  "+ product);
-            plug.add(new PlugData(content.get("İsletme Adı"),content.get(var2[0]),content.get(var2[1]),product,content.get("TOPLAM"))); 
             
+            ////////////////////////////////////////////////////////////////////////////////////////////
+            System.out.println(content.get("İsletme Adı")+"\n"+content.get(var2[0])+"\n"+content.get(var2[1])+"\n"+product+"\n"+content.get("TOPLAM"));
+            plug.add(new PlugData(content.get("İsletme Adı"),content.get(var2[0]),content.get(var2[1]),product,content.get("TOPLAM"))); 
+            return plug;
         }
         catch(Exception e){
+            
             System.out.println(e);
             System.out.println("Parse işlemi sırasında problem çıktı");
+            return null;
+        }    
+    }
+    public void writeİmage(BufferedImage image){
+        try {
+            ImageIO.write(image,"jpg",new File(path));
+        } catch (IOException ex) {
+            System.out.println("İmage yazılırken problem çıktı");
+        }
+    }
+    public BufferedImage getImage(){
+       File fPath = new File(path); 
+  
+        BufferedImage image=null; 
+        
+        try {
+            image = ImageIO.read(fPath);
+        } catch (IOException ex) {
+            Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
+        }
+      
+        return image;
+    }
+    public double getRGB(){
+        double value=0;
+        BufferedImage image = getImage();
+        
+        try{
+             value= image .getRGB(image.getTileWidth() / 2,image.getTileHeight() / 2);
+        }
+        catch (Exception ex){
+            System.out.println("getRGBde porblem var");
         }
         
-        return plug;
+        return value;
     }
-    
+    public void Rescale(float scale,float offset) {
+        BufferedImage image =getImage();
+        
+        BufferedImage newImage = new BufferedImage(1050,1024,image.getType()); 
+        
+        Graphics2D graphic = newImage.createGraphics();
+        
+        graphic.drawImage(image, 0, 0, 1050, 1024, null); 
+        
+        graphic.dispose();
+        
+        RescaleOp rescale = new RescaleOp(scale, offset, null);
+        
+        BufferedImage pImage = rescale.filter(newImage, null); 
+        
+        writeİmage(pImage);
+        
+    }
+    public void scaling(){
+        double value=getRGB();
+        try{
+            if (value >= -1.4211511E7 && value < -7254228) { 
+                Rescale(3f, -10f); 
+            } 
+            else if (value >= -7254228 && value < -2171170) { 
+                Rescale(1.455f, -47f); 
+            } 
+            else if (value>= -2171170 && value< -1907998) { 
+                Rescale(1.35f, -10f); 
+            } 
+            else if (value >= -1907998 && value < -257) { 
+                Rescale(1.19f, 0.5f); 
+            } 
+            else if (value >= -257 && value < -1) { 
+                Rescale(1f, 0.5f); 
+            } 
+            else if (value>= -1 &&value < 2) { 
+                Rescale(1f, 0.35f); 
+            }     
+        }
+        catch(Exception ex){
+            System.out.println(ex);
+        }
+    }
+    //Şirket kontolü yapıcak yoksa eklenicek
     public void isThereCompany(String name){
         
         String query="SELECT *FROM company WHERE name='"+name+"'";
@@ -492,24 +584,43 @@ public class Transactions {
         }
             
     }
+    public String controlNumber(String text){
+        String newText="";
+        
+        
+        for(int i=0;i<text.length();i++){
+            
+            //(text.charAt(i)>64 && text.charAt(i)<91 || text.charAt(i)>96 && text.charAt(i)<123||text.charAt(i)=='*'
+                    //||text.charAt(i)=='*'||text.charAt(i)=='%'||text.charAt(i)==']')
+            if(text.charAt(i)>43 && text.charAt(i)<58||text.charAt(i)=='\\'){
+                System.out.println(text.charAt(i));
+                newText +=text.charAt(i);
+            }
+            else if(text.indexOf(",")==-1&&!newText.isEmpty()&&newText.indexOf(",")==-1){
+                newText +=",";
+            }
+        }
+        newText=newText.trim();
+        return newText;
+    }
     //İşlemler tamamlandığında arraylist alıcak
     //Eklenecek veriler arraylistten gelecek
-    public void addplug(ArrayList<PlugData> plug){
+    public boolean addplug(ArrayList<PlugData> plug){
         if(plug==null)
-            return;
+            return false;
         int id=0;
         String date="",pt="",name="",no="",total="";
         
         //System.out.println(plug.get(0).toString()+"  "+plug.get(1).toString()+plug.get(2).toString()+plug.get(3).toString()+plug.get(4).toString());
         for (PlugData p: plug){
-               System.out.println("--------------------------"+p.getDate());
                name=p.getMarketName();
                no=p.getPlugNo();
                date=p.getDate();
                pt=p.getProduct();
                total=p.getTotalPrice();
-                
             }
+        if(name==null||no==null||date==null||pt==null||total==null)
+            return false;
           
         isThereCompany(name);
         String query="SELECT *FROM company WHERE name='"+name+"'";
@@ -545,7 +656,7 @@ public class Transactions {
         } catch (SQLException ex) {
             Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
         }
-             
+          return true;   
     }
     //Databasedeki verileri sıralamak için kullandığım fonksiyon
     public ArrayList<PlugData> sorting(String var){

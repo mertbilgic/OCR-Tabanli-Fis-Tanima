@@ -327,7 +327,8 @@ public class Menu extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
     
     private void labelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_labelMouseClicked
-      String text="";
+        
+        String text="";
         try{
              text=t.allTras();
             parseText.setText(text);
