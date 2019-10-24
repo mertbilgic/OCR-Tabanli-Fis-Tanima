@@ -61,13 +61,12 @@ public class Transactions {
     
     private String result;
     
+     private String parseResult="";
 
-    
-    double INCH_2_CM=2.54;
-    
-    public static final String DENSITY_UNITS_NO_UNITS = "00";
-    public static final String DENSITY_UNITS_PIXELS_PER_INCH = "01";
-    public static final String DENSITY_UNITS_PIXELS_PER_CM = "02";
+    //double INCH_2_CM=2.54;
+    //public static final String DENSITY_UNITS_NO_UNITS = "00";
+    //public static final String DENSITY_UNITS_PIXELS_PER_INCH = "01";
+    //public static final String DENSITY_UNITS_PIXELS_PER_CM = "02";
     
     static BufferedImage  gridImage=null;
 
@@ -102,6 +101,7 @@ public class Transactions {
         }
     }  
     public String allTras(){
+        parseResult="";
         boolean status;
         plug.removeAll(plug);
         path = imagePath();
@@ -136,13 +136,16 @@ public class Transactions {
         status=addplug(plug);
         System.out.println(status);
         if(status==false){
+            parseResult="";
             ArrayList<PlugData> plug2;
             scaling();
             result=imageRead(path);
             result = result.toUpperCase();
             plug2 = demoParseText(result);
-            addplug(plug2);
+            status=addplug(plug2);
         }
+        if(status==false)
+            parseResult =result;
             
         
        /* try{
@@ -164,7 +167,10 @@ public class Transactions {
             return result;
         }*/
         
-        return result;
+        //return result;
+        
+        return parseResult;
+                
     }
     
    
@@ -258,6 +264,32 @@ public class Transactions {
 
     metadata.mergeTree(metadataFormat, root);
  }*/ 
+    
+    public String selectProduct(String text){
+        String product="";
+        int percent=0,star=0,lineSIndex,lineEIndex,lineEIndex2;
+        
+
+        while(percent!=-1&&star!=-1){
+            percent=text.indexOf("%",star);
+            star=text.indexOf("*",percent);
+
+            lineSIndex=text.lastIndexOf("\n",percent);
+
+            lineEIndex=text.indexOf("\n",percent);
+            lineEIndex2=text.indexOf("\n",star);
+            
+            if(lineEIndex==lineEIndex2)
+                product += "\n"+text.substring(lineSIndex+1,lineEIndex-1);
+        }
+        System.out.println("----------------------------------------");
+         System.out.println("----------------------------------------");
+         System.out.println(product);
+          System.out.println("----------------------------------------");
+           System.out.println("----------------------------------------");
+        return product;
+        
+    }
     //Tessract kullarak işlenmiş resmi text haline getiriyor
     public void gauss(String path){
          try{ 
@@ -320,15 +352,19 @@ public class Transactions {
         // lineSIndex start line index
         // lineMIndex mid line index
         // lineEIndex end line index
+        
+        
         try{
-            int coIndex,lineSIndex,lineMIndex,lineEIndex;
+            int coIndex,lineSIndex,lineEIndex;
             int nameIndex;
             String key,value,product;
 
             nameIndex=text.indexOf("\n");
             key="İsletme Adı";
             value=text.substring(0,nameIndex);
-
+            
+            
+            
             content.put(key, value);
 
             coIndex=text.indexOf(":");
@@ -364,19 +400,15 @@ public class Transactions {
 
             }
 
-            coIndex=text.indexOf("%");
-            lineSIndex=text.lastIndexOf("\n",coIndex);
-            coIndex=text.lastIndexOf("%");
-            lineEIndex=text.indexOf("\n",coIndex);
-
-            product = text.substring(lineSIndex+1,lineEIndex-1);
+             product= selectProduct(text);
+            
             System.out.println(content.get("İsletme Adı"));
             System.out.println(content.get("TARİH"));
             System.out.println(content.get("FİŞ NO"));
             System.out.println(content.get("TOPLAM FİYAT"));
             System.out.println(product);
             //System.out.println("Liste\n"+content.get("İsletme Adı")+" "+content.get("TARİH")+" "+content.get("FİŞ NO"+" "+content.get("TOPLAM FİYAT")+" "+product));    
-           plug.add(new PlugData(content.get("İsletme Adı"),content.get("TARİH"),content.get("FİŞ NO"),product,content.get("TOPLAM"))); 
+           plug.add(new PlugData(content.get("İsletme Adı"),content.get("TARİH"),content.get("FİŞ NO"),product,Float.valueOf(content.get("TOPLAM")))); 
 
             return plug;
             
@@ -413,6 +445,8 @@ public class Transactions {
             System.out.println(startLine);
             key="İsletme Adı";
             value=text.substring(0,startLine);
+            
+            parseResult+=value+"\n";
             content.put(key, value);
             System.out.println(content.get("İsletme Adı"));
             ////////////////////////////////////////////////////////////////////////////////////////////
@@ -435,6 +469,9 @@ public class Transactions {
                 key=text.substring((startLine),(colone)).trim() ;
                 value=text.substring((colone+1),endline).trim();
                 value = controlNumber(value);
+                
+                parseResult+=key+" : "+value+"\n";
+                
                 content.put(key, value);
             }
             
@@ -447,19 +484,25 @@ public class Transactions {
             value=text.substring((colone+1),endline).trim();
             value = controlNumber(value);
             System.out.println(key+"------------------------------------"+value);
+            parseResult+=key+" : "+value+"\n";
             content.put(key, value);
             
             ////////////////////////////////////////////////////////////////////////////////////////////
             
-            colone=text.indexOf("%");
+            /*colone=text.indexOf("%");
             startLine=text.lastIndexOf("\n",colone);
             colone=text.lastIndexOf("%");
             endline=text.indexOf("\n",colone);
-            product = text.substring(startLine+1,endline);
+            product = text.substring(startLine+1,endline);*/
+            
+            product= selectProduct(text);
+            System.out.println("Product:\n"+product+"\n\n\n\n");
+            
+            parseResult+=product+"\n";
             
             ////////////////////////////////////////////////////////////////////////////////////////////
-            System.out.println(content.get("İsletme Adı")+"\n"+content.get(var2[0])+"\n"+content.get(var2[1])+"\n"+product+"\n"+content.get("TOPLAM"));
-            plug.add(new PlugData(content.get("İsletme Adı"),content.get(var2[0]),content.get(var2[1]),product,content.get("TOPLAM"))); 
+            //System.out.println(content.get("İsletme Adı")+"\n"+content.get(var2[0])+"\n"+content.get(var2[1])+"\n"+product+"\n"+content.get("TOPLAM"));
+            plug.add(new PlugData(content.get("İsletme Adı"),content.get(var2[0]),content.get(var2[1]),product,Float.valueOf(content.get("TOPLAM")))); 
             return plug;
         }
         catch(Exception e){
@@ -592,15 +635,25 @@ public class Transactions {
             
             //(text.charAt(i)>64 && text.charAt(i)<91 || text.charAt(i)>96 && text.charAt(i)<123||text.charAt(i)=='*'
                     //||text.charAt(i)=='*'||text.charAt(i)=='%'||text.charAt(i)==']')
-            if(text.charAt(i)>43 && text.charAt(i)<58||text.charAt(i)=='\\'){
+            if(text.charAt(i)==','&&newText.indexOf(".")==-1){
+                 newText +=".";
+                 continue;
+            }
+                
+                    
+            if(text.charAt(i)>43 && text.charAt(i)<58||text.charAt(i)=='\\'&&newText.charAt(i)!=','){
                 System.out.println(text.charAt(i));
                 newText +=text.charAt(i);
             }
-            else if(text.indexOf(",")==-1&&!newText.isEmpty()&&newText.indexOf(",")==-1){
-                newText +=",";
+            else if(text.indexOf(",")==-1&&!newText.isEmpty()&&newText.indexOf(",")==-1&&newText.indexOf(".")==-1){
+                newText +=".";
             }
+
         }
+       
+        
         newText=newText.trim();
+        System.out.println("--------------------------------------------------"+newText);
         return newText;
     }
     //İşlemler tamamlandığında arraylist alıcak
@@ -609,8 +662,9 @@ public class Transactions {
         if(plug==null)
             return false;
         int id=0;
-        String date="",pt="",name="",no="",total="";
-        
+        String date="",pt="",name="",no="";
+        float total=0;
+         
         //System.out.println(plug.get(0).toString()+"  "+plug.get(1).toString()+plug.get(2).toString()+plug.get(3).toString()+plug.get(4).toString());
         for (PlugData p: plug){
                name=p.getMarketName();
@@ -619,7 +673,7 @@ public class Transactions {
                pt=p.getProduct();
                total=p.getTotalPrice();
             }
-        if(name==null||no==null||date==null||pt==null||total==null)
+        if(name==null||no==null||date==null||pt==null)
             return false;
           
         isThereCompany(name);
@@ -648,7 +702,7 @@ public class Transactions {
             
             preparedstatement.setString(4,pt);
             
-            preparedstatement.setString(5, total);
+            preparedstatement.setFloat(5, total);
                     
             preparedstatement.executeUpdate();
             
@@ -711,7 +765,7 @@ public class Transactions {
                 String date= rs.getString("date");
                 String pNo=rs.getString("plugNo");
                 String product = rs.getString("product");
-                String total = rs.getString("total");
+                float total = rs.getFloat("total");
                             
                 result.add(new PlugData(name, date, pNo, product, total));          
             }

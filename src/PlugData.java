@@ -4,9 +4,9 @@ public class PlugData {
     private String date;
     private String plugNo;
     private String product;
-    private String totalPrice;
+    private float totalPrice;
 
-    public PlugData(String marketName, String date, String plugNo, String product, String totalPrice) {
+    public PlugData(String marketName, String date, String plugNo, String product, float totalPrice) {
         this.marketName = marketName;
         this.date = date;
         this.plugNo = plugNo;
@@ -46,11 +46,11 @@ public class PlugData {
         this.product = product;
     }
 
-    public String getTotalPrice() {
+    public float getTotalPrice() {
         return totalPrice;
     }
 
-    public void setTotalPrice(String totalPrice) {
+    public void setTotalPrice(float totalPrice) {
         this.totalPrice = totalPrice;
     }
     
