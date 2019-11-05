@@ -1,5 +1,6 @@
+
 public class PlugData {
-    
+
     private String marketName;
     private String date;
     private String plugNo;
@@ -53,7 +54,5 @@ public class PlugData {
     public void setTotalPrice(float totalPrice) {
         this.totalPrice = totalPrice;
     }
-    
-    
-   
+
 }

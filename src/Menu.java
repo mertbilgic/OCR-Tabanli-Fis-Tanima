@@ -17,17 +17,16 @@ import javax.swing.table.DefaultTableModel;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author Mert Bilgic
  */
 public class Menu extends javax.swing.JFrame {
+
     DefaultTableModel model;
     Transactions t = new Transactions();
     public String path;
-   
-    
+
     /**
      * Creates new form Menu
      */
@@ -35,38 +34,34 @@ public class Menu extends javax.swing.JFrame {
         initComponents();
         model = (DefaultTableModel) table.getModel();
         setTable(t.getAllDB());
-        
+
         Image img;
         try {
-            img = ImageIO.read(new FileImageInputStream( new File("img/select.png")));
-                label.setIcon(new ImageIcon(img));
-                label.setMinimumSize(new Dimension(250,250));
+            img = ImageIO.read(new FileImageInputStream(new File("img/select.png")));
+            label.setIcon(new ImageIcon(img));
+            label.setMinimumSize(new Dimension(250, 250));
         } catch (IOException ex) {
             //Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("Resim okunamadi");
         }
 
-        
     }
-    
-    public void setTable(ArrayList<PlugData> result){
-        
+
+    public void setTable(ArrayList<PlugData> result) {
+
         model.setRowCount(0);
-        
-        
-        if(result !=null){
-            
+
+        if (result != null) {
+
             for (PlugData data : result) {
-                
-                 Object[] add = {data.getMarketName(),data.getDate(),data.getPlugNo(),data.getProduct(),data.getTotalPrice()};
-                 model.addRow(add);
-              
+
+                Object[] add = {data.getMarketName(), data.getDate(), data.getPlugNo(), data.getProduct(), data.getTotalPrice()};
+                model.addRow(add);
+
             }
-            
+
         }
     }
-        
- 
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -325,33 +320,31 @@ public class Menu extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    
+
     private void labelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_labelMouseClicked
-        
-        String text="";
-        try{
-             text=t.allTras();
+
+        String text = "";
+        try {
+            text = t.allTras();
             parseText.setText(text);
             //t.demoParseText(text);
-        setTable(t.getAllDB());
-        }
-        catch(Exception e){
-            
-        }
-        finally{
+            setTable(t.getAllDB());
+        } catch (Exception e) {
+
+        } finally {
             parseText.setText(text);
-                //t.parseText(text);
+            //t.parseText(text);
         }
-       
-        
+
+
     }//GEN-LAST:event_labelMouseClicked
 
     private void oriBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_oriBtnActionPerformed
-       setTable(t.getAllDB());
+        setTable(t.getAllDB());
     }//GEN-LAST:event_oriBtnActionPerformed
 
     private void upBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upBtnActionPerformed
-       setTable(t.sorting("DESC"));
+        setTable(t.sorting("DESC"));
     }//GEN-LAST:event_upBtnActionPerformed
 
     private void searchBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBtnActionPerformed
@@ -363,7 +356,7 @@ public class Menu extends javax.swing.JFrame {
     private void downBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downBtnActionPerformed
         setTable(t.sorting("ASC"));
     }//GEN-LAST:event_downBtnActionPerformed
-   
+
     /**
      * @param args the command line arguments
      */
